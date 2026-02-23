@@ -1,1 +1,1 @@
-Kamera erişimi için mükemmel kod
+Kamera erişimi için mükemmel kod sorumluluk bana ait değildir.
