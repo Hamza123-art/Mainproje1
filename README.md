@@ -1,1 +1,1 @@
-Kamera erişimi için mükemmel kod sorumluluk bana ait değildir.
+Kamera erişimi için mükemmel kod sorumluluk bana ait değildir. fotoları almak için bana tiktoktan yazın :farazi1881
